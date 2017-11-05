@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/04 23:15:55 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/05 19:28:35 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,19 +168,21 @@ void	cd(t_list *envp, char **args)
 	char			*new_line;
 
 	pwd = get_env_node("PWD", envp);
+	if (!pwd)
+		return ;
 	new_line = NULL;
 	if (!args[0])
 	{
 		ft_strdel(&pwd->info);
 		pwd->info = ft_strdup("/");
 	}
-	else if (!args[1])
+	else if (args[0] && !args[1])
 		new_line = ft_multijoin((char *[4]){pwd->info, "/", args[0], NULL});
-	else if (!args[2])
+	else if (args[0] && args[1] && !args[2])
 		new_line = remplace_first_occurence(pwd->info, args[0], args[1]);
 	else
 		ft_putstr_fd("cd: Too many arguments\n", 2);
-	if ((!args[1] || !args[2]) && new_line)
+	if (args[0] && (!args[1] || !args[2]) && new_line)
 	{
 		res = get_cd_path(new_line);
 		if (res)
@@ -303,19 +305,90 @@ void	echo(t_list *envp, char **args)
 
 	bracket = 0;
 	j = get_echo_args(args, &echo_args);
-	while (args[j])
-	{
-		if (echo_args.e)
-			remplace_echo_char(&args[j]);
-		i = -1;
-		while (args[j][++i])
-			write(1, &args[j][i], (args[j][i] == '\"' ? 0 : 1));
-		j++;
-		if (args[j])
-			ft_putchar(' ');
-	}
+	if (j != -1)
+		while (args[j])
+		{
+			if (echo_args.e)
+				remplace_echo_char(&args[j]);
+			i = -1;
+			while (args[j][++i])
+				write(1, &args[j][i], (args[j][i] == '\"' ? 0 : 1));
+			j++;
+			if (args[j])
+				ft_putchar(' ');
+		}
 	if (!echo_args.n)
 		ft_putchar('\n');
+}
+
+void	sh_setenv(t_list *envp, char **args)
+{
+	char		*to_find;
+	int			find;
+	t_list		*begin;
+	t_envnode	buf;
+
+	find = 0;
+	to_find = ft_strchr(args[0], '=');
+	if (to_find)
+		to_find = ft_strndup(args[0], (size_t)(to_find - args[0]));
+	else
+		to_find = ft_strdup(args[0]);
+	begin = envp;
+	while ((envp = envp->next))
+		if (!ft_strcmp(to_find, ((t_envnode *)envp->content)->name))
+		{
+			find = 1;
+			break;
+		}
+	if (find)
+	{
+		ft_strdel(&to_find);
+		ft_strdel(&((t_envnode *)envp->content)->info);
+		if ((to_find = ft_strchr(args[0], '=')))
+			((t_envnode *)envp->content)->info = ft_strdup(to_find + 1);
+		else
+			((t_envnode *)envp->content)->info = ft_strdup(args[1]);
+	}
+	else
+	{
+		while (begin->next)
+			begin = begin->next;
+		buf.name = ft_strdup(to_find);
+		ft_strdel(&to_find);
+		if ((to_find = ft_strchr(args[0], '=')))
+			buf.info = ft_strdup(to_find + 1);
+		else
+			buf.info = ft_strdup(args[1]);
+		begin->next = ft_lstnew(&buf, sizeof(buf));
+	}
+}
+
+void	sh_unsetenv(t_list *envp, char **args)
+{
+	t_list		*res;
+	t_list		*past;
+	int			find;
+
+	find = 0;
+	past = envp;
+	while ((envp = envp->next))
+	{
+		if (!ft_strcmp(args[0], ((t_envnode *)envp->content)->name))
+		{
+			find = 1;
+			break;
+		}
+		past = past->next;
+	}
+	if (find)
+	{
+		ft_strdel(&((t_envnode *)envp->content)->name);
+		ft_strdel(&((t_envnode *)envp->content)->info);
+		ft_memdel(&envp->content);
+		past->next = envp->next;
+		ft_memdel((void **)&envp);
+	}
 }
 
 void	launch_cmd(t_list *envp, char *line)
@@ -323,7 +396,7 @@ void	launch_cmd(t_list *envp, char *line)
 	char		**splited;
 	char		*new_line;
 
-	new_line = ft_strndup(line, ft_strlen(line) - 1);
+	new_line = ft_strdup(line);
 	splited = ft_strsplit(new_line, ' ');
 	if (splited && splited[0])
 	{
@@ -337,6 +410,10 @@ void	launch_cmd(t_list *envp, char *line)
 			exit(0);
 		else if (!ft_strcmp(splited[0], "echo"))
 			echo(envp, &splited[1]);
+		else if (!ft_strcmp(splited[0], "unsetenv"))
+			sh_unsetenv(envp, &splited[1]);
+		else if (!ft_strcmp(splited[0], "setenv"))
+			sh_setenv(envp, &splited[1]);
 		else
 			ft_multiputstr_fd((char *[4])
 					{"1sh: command not found: ", splited[0], "\n", NULL}, 2);
@@ -345,18 +422,68 @@ void	launch_cmd(t_list *envp, char *line)
 	ft_deldoubletab((void ***)&splited);
 }
 
-int		read_line(t_list *envp)
+char	ft_getchar(void)
 {
-	int		readed;
-	char	line[1025];
+	char		buf;
 
-	readed = read(1, line, 1024);
-	line[readed] = '\0';
-	if (line[readed - 1] == '\n')
+	read(0, &buf, 1);
+	return (buf);
+}
+
+void	*ft_realloc(void *str, size_t *len, size_t add)
+{
+	char	*res;
+
+	res = (void *)malloc(*len + add);
+	if (!res)
+		return (NULL);
+	ft_memcpy(res, str, *len);
+	*len += add;
+	free(str);
+	return (res);
+}
+
+int		read_loop(t_list *envp)
+{
+	t_strbuf	line;
+	size_t		i;
+	char		in_cote;
+	size_t		off_line;
+
+	line.str = (char *)malloc(sizeof(char) * LINE_BUF);
+	line.len = LINE_BUF;
+	off_line = 0;
+	ft_bzero(line.str, sizeof(char) * line.len);
+	i = 0;
+	in_cote = 0;
+	while (42)
 	{
-		lseek(1, ft_strlen(line), SEEK_CUR);
-		launch_cmd(envp, line);
-		write (1, PROMPT, 2);
+		if ((line.str[i] = ft_getchar()))
+		{
+			if (line.str[i] == '\"' && (i == 0 || line.str[i - 1] != '\\'))
+				in_cote ^= 1;
+			if (line.str[i] == '\n')
+			{
+				if (in_cote)
+					ft_putstr(COTE_PROMPT);
+				else if (i == 0 || line.str[i - 1] != '\\')
+				{
+					line.str[i] = '\0';
+					launch_cmd(envp, &line.str[off_line]);
+					off_line = i + 1;
+					ft_putstr(PROMPT);
+				}
+				else
+				{
+					i--;
+					line.str[i] = '\n';
+					ft_putstr(BACKSLASH_PROMPT);
+				}
+			}
+			i++;
+			if (i == line.len)
+				line.str = ft_realloc((void *)line.str, &line.len, LINE_BUF);
+		}
 	}
 	return (0);
 }
@@ -390,6 +517,5 @@ int		main(int argc, char **argv, char **envp)
 	if (!(env = dup_env(envp)))
 		return (EXIT_FAILURE);
 	write (1, PROMPT, 2);
-	while (42)
-		read_line(env);
+	read_loop(env);
 }

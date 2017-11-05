@@ -8,6 +8,8 @@ DIR_LIB = srcs/libft/
 
 HEADER = -I includes -I $(DIR_LIB)/includes/
 
+INCLUDES = includes/minishell.h
+
 SOURCES = main.c \
 
 DIR_O = objs
@@ -23,7 +25,7 @@ ${NAME}: $(DIR_O) $(OBJS)
 	make -C $(DIR_LIB)
 	${CPP} $(CFLAGS) -o $@ $(OBJS) $(DIR_LIB)/libft.a
 
-$(DIR_O)/%.o: $(DIR_S)/%.c
+$(DIR_O)/%.o: $(DIR_S)/%.c $(INCLUDES)
 	$(CPP) $(CFLAGS) $(HEADER) -c -o $@ $<
 
 $(DIR_O):
