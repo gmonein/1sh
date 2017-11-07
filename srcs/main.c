@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/05 19:28:35 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 11:52:30 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,19 +59,16 @@ char	*ft_strjoinwithchar(char **to_join, char c)
 	len = 0;
 	i = -1;
 	while (to_join[++i])
-		len += ft_strlen(to_join[i]) + (to_join[i + 1] ? 1 : 0);
+		len += ft_strlen(to_join[i]) + 1;
 	res = (char *)malloc(sizeof(char) * (len + 1));
 	i = -1;
 	len = 0;
 	while (to_join[++i])
 	{
+		ft_strcpy(res + len, &c);
+		len += 1;
 		ft_strcpy(res + len, to_join[i]);
 		len += ft_strlen(to_join[i]);
-		if (to_join[i + 1])
-		{
-			ft_strcpy(res + len, &c);
-			len += 1;
-		}
 	}
 	res[len] = '\0';
 	return (res);
@@ -121,6 +118,7 @@ char	*purify_path(char *path)
 char	*get_cd_path(char *path)
 {
 	DIR		*pdirent;
+	char	*res;
 
 	pdirent = opendir(path);
 	if (pdirent)
@@ -129,8 +127,8 @@ char	*get_cd_path(char *path)
 		return (purify_path(path));
 	}
 	else
-		ft_multiputstr_fd((char *[4])
-					{"cd: no such file or directory: ", path, "\n", NULL}, 2);
+		ft_multiputstr_fd((char *[6])
+				{"cd: ", strerror(errno), ": ", path, "\n", NULL}, 2);
 	return (NULL);
 }
 
@@ -157,7 +155,7 @@ char	*remplace_first_occurence(char *str, char *remove, char *new)
 	offset += (size_t)(to_remplace - str);
 	ft_strcpy(res + offset, new);
 	offset += ft_strlen(new);
-	ft_strcpy(res + offset, to_remplace + ft_strlen(new));
+	ft_strcpy(res + offset, to_remplace + ft_strlen(to_remplace));
 	return (res);
 }
 
@@ -174,7 +172,10 @@ void	cd(t_list *envp, char **args)
 	if (!args[0])
 	{
 		ft_strdel(&pwd->info);
-		pwd->info = ft_strdup("/");
+		res = get_env_node("HOME", envp)->info;
+		if (!res)
+			res = "/";
+		pwd->info = ft_strdup(res);
 	}
 	else if (args[0] && !args[1])
 		new_line = ft_multijoin((char *[4]){pwd->info, "/", args[0], NULL});
@@ -296,7 +297,7 @@ void	remplace_echo_char(char **str)
 	*str = res;
 }
 
-void	echo(t_list *envp, char **args)
+void	sh_echo(t_list *envp, char **args)
 {
 	int			bracket;
 	int			i;
@@ -409,7 +410,7 @@ void	launch_cmd(t_list *envp, char *line)
 		else if (!ft_strcmp(splited[0], "exit"))
 			exit(0);
 		else if (!ft_strcmp(splited[0], "echo"))
-			echo(envp, &splited[1]);
+			sh_echo(envp, &splited[1]);
 		else if (!ft_strcmp(splited[0], "unsetenv"))
 			sh_unsetenv(envp, &splited[1]);
 		else if (!ft_strcmp(splited[0], "setenv"))
@@ -420,14 +421,6 @@ void	launch_cmd(t_list *envp, char *line)
 	}
 	free(new_line);
 	ft_deldoubletab((void ***)&splited);
-}
-
-char	ft_getchar(void)
-{
-	char		buf;
-
-	read(0, &buf, 1);
-	return (buf);
 }
 
 void	*ft_realloc(void *str, size_t *len, size_t add)
@@ -443,46 +436,90 @@ void	*ft_realloc(void *str, size_t *len, size_t add)
 	return (res);
 }
 
+char	ft_getchar(void)
+{
+	char		buf;
+
+	read(0, &buf, 1);
+	return (buf);
+}
+
+char		is_printable(char c)
+{
+	if (c >= ' ' && c <= '~')
+		return (1);
+	else if (c == '\n' || c == '\t')
+		return (1);
+	return (0);
+}
+
+char		get_key(t_strbuf *line)
+{
+	char		res;
+
+	res = ft_getchar();
+	if (is_printable(res))
+	{
+		write (1, &res, 1);
+//		ft_putstr(BACK_WHITE);
+//		ft_putstr("-");
+//		ft_putstr(END_EFFECT);
+		return (res);
+	}
+	else
+		return (0);
+}
+
+int		line_addchar(t_list *envp, t_strbuf *line, char c)
+{
+	static char		in_cote = 0;
+	static char		back_slash = 0;
+
+	back_slash = (c == '\\' && !back_slash ? 1 : 0);
+	if (c == '\"' && back_slash == 0)
+		in_cote ^= 1;
+	if (c == '\n')
+	{
+		if (!in_cote && !back_slash)
+		{
+			line->str[line->i] = '\0';
+			return (1);
+		}
+		if (back_slash || in_cote)
+			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
+	}
+	line->str[line->i] = c;
+	line->i++;
+	if (line->i == line->len)
+		line->str = ft_realloc((void *)line->str, &line->len, LINE_BUF);
+	return (0);
+}
+
 int		read_loop(t_list *envp)
 {
 	t_strbuf	line;
-	size_t		i;
 	char		in_cote;
 	size_t		off_line;
+	char		key;
 
 	line.str = (char *)malloc(sizeof(char) * LINE_BUF);
+	line.i = 0;
 	line.len = LINE_BUF;
 	off_line = 0;
 	ft_bzero(line.str, sizeof(char) * line.len);
-	i = 0;
 	in_cote = 0;
 	while (42)
 	{
-		if ((line.str[i] = ft_getchar()))
+		key = get_key(&line);
+		if (key)
 		{
-			if (line.str[i] == '\"' && (i == 0 || line.str[i - 1] != '\\'))
-				in_cote ^= 1;
-			if (line.str[i] == '\n')
+			if (line_addchar(envp, &line, key))
 			{
-				if (in_cote)
-					ft_putstr(COTE_PROMPT);
-				else if (i == 0 || line.str[i - 1] != '\\')
-				{
-					line.str[i] = '\0';
-					launch_cmd(envp, &line.str[off_line]);
-					off_line = i + 1;
-					ft_putstr(PROMPT);
-				}
-				else
-				{
-					i--;
-					line.str[i] = '\n';
-					ft_putstr(BACKSLASH_PROMPT);
-				}
+				launch_cmd(envp, line.str);
+				ft_putstr(PROMPT);
+				ft_bzero(line.str, sizeof(char) * line.len);
+				line.i = 0;
 			}
-			i++;
-			if (i == line.len)
-				line.str = ft_realloc((void *)line.str, &line.len, LINE_BUF);
 		}
 	}
 	return (0);
@@ -511,10 +548,25 @@ t_list	*dup_env(char **envp)
 
 int		main(int argc, char **argv, char **envp)
 {
-	int			readed;
-	t_list		*env;
-	
+	int				readed;
+	t_list			*env;
+	struct termios	term;
+	t_envnode		*shell_name;
+
 	if (!(env = dup_env(envp)))
+		return (EXIT_FAILURE);
+	shell_name = get_env_node("TERM", env);
+	if (!shell_name)
+		return (EXIT_FAILURE);
+	ft_strdel(&shell_name->info);
+	shell_name->info = ft_strdup("minishell");
+	if (tcgetattr(0, &term) == -1)
+		return (EXIT_FAILURE);
+	term.c_lflag &= ~(ICANON);
+	term.c_lflag &= ~(ECHO);
+	term.c_cc[VMIN] = 1;
+	term.c_cc[VTIME] = 0;
+	if (tcsetattr(0, TCSADRAIN, &term) == -1)
 		return (EXIT_FAILURE);
 	write (1, PROMPT, 2);
 	read_loop(env);
