@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 20:40:35 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 21:15:16 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -563,26 +563,6 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	static char		in_cote = 0;
 	static char		back_slash = 0;
 
-	tputs(tgetstr("im", NULL), 1, ft_iputchar);
-	back_slash = (c == '\\' && !back_slash ? 1 : 0);
-	if (c == '\"' && back_slash == 0)
-		in_cote ^= 1;
-	if (c == '\n')
-	{
-		if (!in_cote && !back_slash)
-			return (1);
-		if (back_slash || in_cote)
-		{
-			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
-			ft_putchar(c);
-			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
-			ft_putstrto(&line->str[line->i], '\n');
-			move_backward(ft_strlento(&line->str[line->i], '\n') - 1);
-//			tputs(tgetstr("kE", NULL), 1, ft_iputchar);
-		}
-	}
-	else
-		ft_putchar(c);
 	if (line->str_len + 1 >= line->len)
 		line->str = ft_realloc((void *)line->str, &line->len, LINE_BUF);
 	ft_rstrcpy(&line->str[line->i + 1], &line->str[line->i]);
@@ -590,7 +570,26 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	line->i++;
 	line->str_len++;
 	line->str[line->str_len] = '\0';
-	tputs(tgetstr("ei", NULL), 1, ft_iputchar);
+
+	back_slash = (c == '\\' && !back_slash ? 1 : 0);
+	if (c == '\"' && back_slash == 0)
+		in_cote ^= 1;
+	if (c == '\n')
+	{
+		ft_putchar(c);
+		if (!in_cote && !back_slash)
+			return (1);
+		if (back_slash || in_cote)
+		{
+			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
+			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
+			ft_putstrto(&line->str[line->i], '\n');
+			move_backward(ft_strlento(&line->str[line->i], '\n') - 1);
+//			tputs(tgetstr("kE", NULL), 1, ft_iputchar);
+		}
+	}
+	else
+		ft_putchar(c);
 	return (0);
 }
 
@@ -613,6 +612,7 @@ int		read_loop(t_list *envp)
 		key = get_key(&line);
 		if (key)
 		{
+			tputs(tgetstr("im", NULL), 1, ft_iputchar);
 			if (line_addchar(envp, &line, key))
 			{
 				launch_cmd(envp, line.str);
@@ -621,6 +621,7 @@ int		read_loop(t_list *envp)
 				line.str_len = 0;
 				line.i = 0;
 			}
+			tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 		}
 	}
 	return (0);
