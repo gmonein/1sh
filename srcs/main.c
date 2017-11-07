@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 13:21:36 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 17:24:12 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -460,33 +460,66 @@ char	*ft_getchar(int *len)
 	return (buf);
 }
 
-void		sh_delete_character(t_strbuf *line)
+void		get_delete_character(t_strbuf *line, char *input)
 {
-	line->i--;
-	line->str[line->i] = '\0';
-	line->len--;
-	ft_putstr("\033[1D");
-	tputs(" ", 1, ft_iputchar);
-	ft_putstr("\033[1D");
+	char		*buf;
+
+	if (*((long *)input) == 0x7F && line->i != 0)
+	{
+		ft_strcpy(&line->str[line->i - 1], &line->str[line->i]);
+		line->i--;
+		line->str_len--;
+		buf = tgetstr("dc", NULL);
+		ft_putstr("\033[1D");
+		ft_putstr(buf);
+	}
+}
+
+void		get_arrow(t_strbuf *line, char *input)
+{
+	if (input[1] == '[')
+	{
+		if (input[2] == 'D' && line->i != 0)
+		{
+			line->i--;
+			ft_putstr(input);
+		}
+		else if (input[2] == 'C' && line->i != line->str_len)
+		{
+			line->i++;
+			ft_putstr(input);
+		}
+	}
 }
 
 char		get_key(t_strbuf *line)
 {
-	char		*res;
+	char		*input;
 	int			len;
 
-	res = ft_getchar(&len);
-	if (len == 1 && is_printable(*res))
+	input = ft_getchar(&len);
+	if (len == 1 && is_printable(*input))
 	{
-		tputs(res, 1, ft_iputchar);
-		line->str_len++;
-		return (*res);
+		tputs(tgetstr("im", NULL), 1, ft_iputchar);
+		tputs(input, 1, ft_iputchar);
+		tputs(tgetstr("ei", NULL), 1, ft_iputchar);
+		return (*input);
 	}
-	if (res[1] == '[')
-		ft_multiputstr((char *[3]){"\033[1", &res[2], NULL});
-	if (*((long *)res) == 0x7F && line->i != 0)
-		sh_delete_character(line);
+	get_delete_character(line, input);
+	get_arrow(line, input);
 	return (0);
+}
+
+void	ft_rstrcpy(char *dest, char *src)
+{
+	int		i;
+
+	i = ft_strlen(src);
+	while (i != -1)
+	{
+		dest[i] = src[i];
+		i--;
+	}
 }
 
 int		line_addchar(t_list *envp, t_strbuf *line, char c)
@@ -500,17 +533,17 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	if (c == '\n')
 	{
 		if (!in_cote && !back_slash)
-		{
-			line->str[line->i] = '\0';
 			return (1);
-		}
 		if (back_slash || in_cote)
 			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
 	}
+	if (line->str_len + 1 >= line->len)
+		line->str = ft_realloc((void *)line->str, &line->len, LINE_BUF);
+	ft_rstrcpy(&line->str[line->i + 1], &line->str[line->i]);
 	line->str[line->i] = c;
 	line->i++;
-	if (line->i == line->len)
-		line->str = ft_realloc((void *)line->str, &line->len, LINE_BUF);
+	line->str_len++;
+	line->str[line->str_len] = '\0';
 	return (0);
 }
 
@@ -538,6 +571,7 @@ int		read_loop(t_list *envp)
 				launch_cmd(envp, line.str);
 				ft_putstr(PROMPT);
 				ft_bzero(line.str, sizeof(char) * line.len);
+				line.str_len = 0;
 				line.i = 0;
 			}
 		}
@@ -573,13 +607,15 @@ int		main(int argc, char **argv, char **envp)
 	struct termios	term;
 	t_envnode		*shell_name;
 
+	tputs(tgetstr("im", NULL), 1, ft_iputchar);
 	if (!(env = dup_env(envp)))
 		return (EXIT_FAILURE);
 	shell_name = get_env_node("TERM", env);
 	if (!shell_name)
 		return (EXIT_FAILURE);
-	ft_strdel(&shell_name->info);
-	shell_name->info = ft_strdup("minishell");
+	printf("%s\n", shell_name->info);
+//	ft_strdel(&shell_name->info);
+//	shell_name->info = ft_strdup("minishell");
 	if (tcgetattr(0, &term) == -1)
 		return (EXIT_FAILURE);
 	term.c_lflag &= ~(ICANON);
@@ -588,7 +624,7 @@ int		main(int argc, char **argv, char **envp)
 	term.c_cc[VTIME] = 0;
 	if (tcsetattr(0, TCSADRAIN, &term) == -1)
 		return (EXIT_FAILURE);
-//	tputs(tgoto(tgetstr("cm", NULL), 8, 0), 1, ft_iputchar);
+	tgetent(0, shell_name->info);
 	write (1, PROMPT, 2);
 	read_loop(env);
 }

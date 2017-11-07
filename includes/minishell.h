@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 13:08:52 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 14:30:35 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@
 # include <termios.h>
 # include <termcap.h>
 # include <curses.h>
+# include <stdio.h>
+# include <stdlib.h>
 
 #define PROMPT				"$>"
 #define COTE_PROMPT			"dquote>"
