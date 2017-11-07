@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 17:24:12 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 20:40:35 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -470,9 +470,14 @@ void		get_delete_character(t_strbuf *line, char *input)
 		line->i--;
 		line->str_len--;
 		buf = tgetstr("dc", NULL);
-		ft_putstr("\033[1D");
-		ft_putstr(buf);
+		tputs("\033[1D", 1, ft_iputchar);
+		tputs(buf, 1, ft_iputchar);
 	}
+}
+
+void		move_to_upper_line(t_strbuf *line)
+{
+	
 }
 
 void		get_arrow(t_strbuf *line, char *input)
@@ -481,10 +486,15 @@ void		get_arrow(t_strbuf *line, char *input)
 	{
 		if (input[2] == 'D' && line->i != 0)
 		{
-			line->i--;
-			ft_putstr(input);
+			if (line->str[line->i - 1] != '\n')
+			{
+				tputs(input, 1, ft_iputchar);
+				line->i--;
+			}
+			else
+				move_to_upper_line(line);
 		}
-		else if (input[2] == 'C' && line->i != line->str_len)
+		else if (input[2] == 'C' && line->str[line->i])
 		{
 			line->i++;
 			ft_putstr(input);
@@ -499,12 +509,7 @@ char		get_key(t_strbuf *line)
 
 	input = ft_getchar(&len);
 	if (len == 1 && is_printable(*input))
-	{
-		tputs(tgetstr("im", NULL), 1, ft_iputchar);
-		tputs(input, 1, ft_iputchar);
-		tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 		return (*input);
-	}
 	get_delete_character(line, input);
 	get_arrow(line, input);
 	return (0);
@@ -522,11 +527,43 @@ void	ft_rstrcpy(char *dest, char *src)
 	}
 }
 
+void	ft_putstrto(char *str, char c)
+{
+	size_t		i;
+
+	i = 0;
+	while (str[i] && str[i] != c)
+	{
+		ft_putchar(str[i]);
+		i++;
+	}
+}
+
+size_t	ft_strlento(char *str, char c)
+{
+	size_t		i;
+
+	i = 0;
+	while (str[i] && str[i] != c)
+		i++;
+	return (i);
+}
+
+void	move_backward(size_t count)
+{
+	while (count != -1)
+	{
+		tputs("\033[1D", 1, ft_iputchar);
+		count--;
+	}
+}
+
 int		line_addchar(t_list *envp, t_strbuf *line, char c)
 {
 	static char		in_cote = 0;
 	static char		back_slash = 0;
 
+	tputs(tgetstr("im", NULL), 1, ft_iputchar);
 	back_slash = (c == '\\' && !back_slash ? 1 : 0);
 	if (c == '\"' && back_slash == 0)
 		in_cote ^= 1;
@@ -535,8 +572,17 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 		if (!in_cote && !back_slash)
 			return (1);
 		if (back_slash || in_cote)
+		{
+			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
+			ft_putchar(c);
 			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
+			ft_putstrto(&line->str[line->i], '\n');
+			move_backward(ft_strlento(&line->str[line->i], '\n') - 1);
+//			tputs(tgetstr("kE", NULL), 1, ft_iputchar);
+		}
 	}
+	else
+		ft_putchar(c);
 	if (line->str_len + 1 >= line->len)
 		line->str = ft_realloc((void *)line->str, &line->len, LINE_BUF);
 	ft_rstrcpy(&line->str[line->i + 1], &line->str[line->i]);
@@ -544,6 +590,7 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	line->i++;
 	line->str_len++;
 	line->str[line->str_len] = '\0';
+	tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 	return (0);
 }
 
