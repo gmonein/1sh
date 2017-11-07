@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 11:52:30 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 13:21:36 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -436,14 +436,6 @@ void	*ft_realloc(void *str, size_t *len, size_t add)
 	return (res);
 }
 
-char	ft_getchar(void)
-{
-	char		buf;
-
-	read(0, &buf, 1);
-	return (buf);
-}
-
 char		is_printable(char c)
 {
 	if (c >= ' ' && c <= '~')
@@ -453,21 +445,48 @@ char		is_printable(char c)
 	return (0);
 }
 
+int			ft_iputchar(int c)
+{
+	write (1, &c, 1);
+	return (0);
+}
+
+char	*ft_getchar(int *len)
+{
+	static char		buf[8];
+
+	ft_bzero(buf, 8);
+	*len = read(0, buf, 8);
+	return (buf);
+}
+
+void		sh_delete_character(t_strbuf *line)
+{
+	line->i--;
+	line->str[line->i] = '\0';
+	line->len--;
+	ft_putstr("\033[1D");
+	tputs(" ", 1, ft_iputchar);
+	ft_putstr("\033[1D");
+}
+
 char		get_key(t_strbuf *line)
 {
-	char		res;
+	char		*res;
+	int			len;
 
-	res = ft_getchar();
-	if (is_printable(res))
+	res = ft_getchar(&len);
+	if (len == 1 && is_printable(*res))
 	{
-		write (1, &res, 1);
-//		ft_putstr(BACK_WHITE);
-//		ft_putstr("-");
-//		ft_putstr(END_EFFECT);
-		return (res);
+		tputs(res, 1, ft_iputchar);
+		line->str_len++;
+		return (*res);
 	}
-	else
-		return (0);
+	if (res[1] == '[')
+		ft_multiputstr((char *[3]){"\033[1", &res[2], NULL});
+	if (*((long *)res) == 0x7F && line->i != 0)
+		sh_delete_character(line);
+	return (0);
 }
 
 int		line_addchar(t_list *envp, t_strbuf *line, char c)
@@ -504,6 +523,7 @@ int		read_loop(t_list *envp)
 
 	line.str = (char *)malloc(sizeof(char) * LINE_BUF);
 	line.i = 0;
+	line.str_len = 0;
 	line.len = LINE_BUF;
 	off_line = 0;
 	ft_bzero(line.str, sizeof(char) * line.len);
@@ -568,6 +588,7 @@ int		main(int argc, char **argv, char **envp)
 	term.c_cc[VTIME] = 0;
 	if (tcsetattr(0, TCSADRAIN, &term) == -1)
 		return (EXIT_FAILURE);
+//	tputs(tgoto(tgetstr("cm", NULL), 8, 0), 1, ft_iputchar);
 	write (1, PROMPT, 2);
 	read_loop(env);
 }

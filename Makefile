@@ -2,13 +2,15 @@ NAME = minishell
 
 CPP = clang
 
-CFLAGS = -fsanitize=address -g3  #-Ofast -march=native -Wall -Wextra -Werror
+CFLAGS = -fsanitize=address -g3 #-Ofast -march=native -Wall -Wextra -Werror
 
 DIR_LIB = srcs/libft/
 
 HEADER = -I includes -I $(DIR_LIB)/includes/
 
 INCLUDES = includes/minishell.h
+
+LIBS = -ltermcap
 
 SOURCES = main.c \
 
@@ -23,7 +25,7 @@ all: $(NAME)
 
 ${NAME}: $(DIR_O) $(OBJS)
 	make -C $(DIR_LIB)
-	${CPP} $(CFLAGS) -o $@ $(OBJS) $(DIR_LIB)/libft.a
+	${CPP} $(CFLAGS) -o $@ $(LIBS) $(OBJS) $(DIR_LIB)/libft.a
 
 $(DIR_O)/%.o: $(DIR_S)/%.c $(INCLUDES)
 	$(CPP) $(CFLAGS) $(HEADER) -c -o $@ $<

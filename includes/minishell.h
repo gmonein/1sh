@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 10:55:52 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/07 13:08:52 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <errno.h>
 # include <term.h>
 # include <termios.h>
+# include <termcap.h>
 # include <curses.h>
 
 #define PROMPT				"$>"
@@ -54,6 +55,7 @@ typedef struct		s_strbuf
 	char			*str;
 	size_t			len;
 	size_t			i;
+	size_t			str_len;
 }					t_strbuf;
 
 typedef struct		s_env
