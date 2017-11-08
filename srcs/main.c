@@ -6,11 +6,12 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 15:11:47 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 15:22:54 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "minishell.h"
+# include <stdio.h>
 
 int		read_loop(t_list *envp)
 {
