@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 13:49:06 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 15:11:47 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ int		read_loop(t_list *envp)
 	while (42)
 	{
 		key = get_key(&line);
-		tputs(tgetstr("im", NULL), 1, ft_iputchar);
 		if (key)
 		{
 			if (line_addchar(envp, &line, key))
@@ -42,7 +41,6 @@ int		read_loop(t_list *envp)
 				line.i = 0;
 			}
 		}
-		tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 	}
 	return (0);
 }
