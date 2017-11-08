@@ -24,6 +24,7 @@
 # include <curses.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <sys/stat.h>
 
 #define PROMPT				"$>"
 #define COTE_PROMPT			">"

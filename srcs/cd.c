@@ -116,6 +116,9 @@ void	cd(t_list *envp, char **args)
 		{
 			ft_strdel(&pwd->info);
 			pwd->info = res;
+			ft_strdel(&get_env_node("OLDPWD",envp)->info);
+			get_env_node("OLDPWD", envp)->info = getcwd(NULL, 0);
+			chdir(pwd->info);
 		}
 		ft_strdel(&new_line);
 	}

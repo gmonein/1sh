@@ -13,6 +13,12 @@
 # include "minishell.h"
 # include <stdio.h>
 
+void            handle_signal2(int sinl)
+{
+        ft_putstr("\n");
+        ft_putstr("$> ");
+}
+
 int		read_loop(t_list *envp)
 {
 	t_strbuf	line;
@@ -29,6 +35,9 @@ int		read_loop(t_list *envp)
 	in_cote = 0;
 	while (42)
 	{
+		signal(SIGINT, SIG_IGN);
+		if (signal(SIGINT, handle_signal2) == SIG_ERR)
+				return (0);
 		key = get_key(&line);
 		if (key)
 		{
@@ -36,6 +45,7 @@ int		read_loop(t_list *envp)
 			{
 				line.str[line.i - 1] = '\0';
 				launch_cmd(envp, line.str);
+				printf("[%d]\n",getpid());
 				ft_putstr(PROMPT);
 				ft_bzero(line.str, sizeof(char) * line.len);
 				line.str_len = 0;
