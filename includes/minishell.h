@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 16:52:43 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 17:13:00 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,9 @@ void	get_delete_character(t_strbuf *line, char *input);
 void	move_backward(size_t count);
 void	move_forward(size_t count);
 void	move_to_upper_line(t_strbuf *line);
+void	move_to_lower_line(t_strbuf *line);
 void	get_arrow(t_strbuf *line, char *input);
 char	get_key(t_strbuf *line);
 int		line_addchar(t_list *envp, t_strbuf *line, char c);
+size_t	get_prompt_len(t_strbuf *line);
+
