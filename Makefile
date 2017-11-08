@@ -12,7 +12,20 @@ INCLUDES = includes/minishell.h
 
 LIBS = -ltermcap
 
-SOURCES = main.c \
+SOURCES = auto_completion.c \
+			cd.c \
+			echo.c \
+			env.c \
+			exec_cmd.c \
+			exit.c \
+			main.c \
+			parsing.c \
+			pwd.c \
+			realloc.c \
+			setenv.c \
+			termcaps.c \
+			tools.c \
+			unsetenv.c \
 
 DIR_O = objs
 
