@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 21:15:16 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 13:49:06 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -475,9 +475,36 @@ void		get_delete_character(t_strbuf *line, char *input)
 	}
 }
 
+void	move_backward(size_t count)
+{
+	while (count != -1)
+	{
+		tputs("\033[1D", 1, ft_iputchar);
+		count--;
+	}
+}
+
+void	move_forward(size_t count)
+{
+	while (count != -1)
+	{
+		tputs("\033[1C", 1, ft_iputchar);
+		count--;
+	}
+}
+
 void		move_to_upper_line(t_strbuf *line)
 {
-	
+	size_t		i;
+
+	tputs("\033[1A", 1, ft_iputchar);
+	move_forward(ft_strlen(COTE_PROMPT));
+	i = line->i;
+	while (line->str[i] != '\n' && i != -1)
+	{
+		move_forward(1);
+		i--;
+	}
 }
 
 void		get_arrow(t_strbuf *line, char *input)
@@ -487,14 +514,13 @@ void		get_arrow(t_strbuf *line, char *input)
 		if (input[2] == 'D' && line->i != 0)
 		{
 			if (line->str[line->i - 1] != '\n')
-			{
 				tputs(input, 1, ft_iputchar);
-				line->i--;
-			}
 			else
 				move_to_upper_line(line);
+			line->i--;
 		}
-		else if (input[2] == 'C' && line->str[line->i])
+		else if (input[2] == 'C' && line->str[line->i]
+								&& line->str[line->i] != '\n')
 		{
 			line->i++;
 			ft_putstr(input);
@@ -549,15 +575,6 @@ size_t	ft_strlento(char *str, char c)
 	return (i);
 }
 
-void	move_backward(size_t count)
-{
-	while (count != -1)
-	{
-		tputs("\033[1D", 1, ft_iputchar);
-		count--;
-	}
-}
-
 int		line_addchar(t_list *envp, t_strbuf *line, char c)
 {
 	static char		in_cote = 0;
@@ -576,17 +593,15 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 		in_cote ^= 1;
 	if (c == '\n')
 	{
+		if (back_slash || in_cote)
+			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
 		ft_putchar(c);
 		if (!in_cote && !back_slash)
 			return (1);
-		if (back_slash || in_cote)
-		{
-			ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
-			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
-			ft_putstrto(&line->str[line->i], '\n');
-			move_backward(ft_strlento(&line->str[line->i], '\n') - 1);
-//			tputs(tgetstr("kE", NULL), 1, ft_iputchar);
-		}
+		ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
+		ft_putstrto(&line->str[line->i], '\n');
+//		tputs(tgetstr("kE", NULL), 1, ft_iputchar);
+		move_backward(ft_strlento(&line->str[line->i], '\n') - 1);
 	}
 	else
 		ft_putchar(c);
@@ -610,19 +625,20 @@ int		read_loop(t_list *envp)
 	while (42)
 	{
 		key = get_key(&line);
+		tputs(tgetstr("im", NULL), 1, ft_iputchar);
 		if (key)
 		{
-			tputs(tgetstr("im", NULL), 1, ft_iputchar);
 			if (line_addchar(envp, &line, key))
 			{
+				line.str[line.i - 1] = '\0';
 				launch_cmd(envp, line.str);
 				ft_putstr(PROMPT);
 				ft_bzero(line.str, sizeof(char) * line.len);
 				line.str_len = 0;
 				line.i = 0;
 			}
-			tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 		}
+		tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 	}
 	return (0);
 }
@@ -661,7 +677,6 @@ int		main(int argc, char **argv, char **envp)
 	shell_name = get_env_node("TERM", env);
 	if (!shell_name)
 		return (EXIT_FAILURE);
-	printf("%s\n", shell_name->info);
 //	ft_strdel(&shell_name->info);
 //	shell_name->info = ft_strdup("minishell");
 	if (tcgetattr(0, &term) == -1)
