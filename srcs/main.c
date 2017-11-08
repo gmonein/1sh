@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 13:49:06 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 13:53:12 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -498,7 +498,7 @@ void		move_to_upper_line(t_strbuf *line)
 	size_t		i;
 
 	tputs("\033[1A", 1, ft_iputchar);
-	move_forward(ft_strlen(COTE_PROMPT));
+	move_forward(ft_strlen(PROMPT));
 	i = line->i;
 	while (line->str[i] != '\n' && i != -1)
 	{
@@ -588,6 +588,7 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	line->str_len++;
 	line->str[line->str_len] = '\0';
 
+	tputs(tgetstr("im", NULL), 1, ft_iputchar);
 	back_slash = (c == '\\' && !back_slash ? 1 : 0);
 	if (c == '\"' && back_slash == 0)
 		in_cote ^= 1;
@@ -597,7 +598,10 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
 		ft_putchar(c);
 		if (!in_cote && !back_slash)
+		{
+			tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 			return (1);
+		}
 		ft_putstr(back_slash ? BACKSLASH_PROMPT : COTE_PROMPT);
 		ft_putstrto(&line->str[line->i], '\n');
 //		tputs(tgetstr("kE", NULL), 1, ft_iputchar);
@@ -605,6 +609,7 @@ int		line_addchar(t_list *envp, t_strbuf *line, char c)
 	}
 	else
 		ft_putchar(c);
+	tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 	return (0);
 }
 
@@ -625,7 +630,6 @@ int		read_loop(t_list *envp)
 	while (42)
 	{
 		key = get_key(&line);
-		tputs(tgetstr("im", NULL), 1, ft_iputchar);
 		if (key)
 		{
 			if (line_addchar(envp, &line, key))
@@ -638,7 +642,6 @@ int		read_loop(t_list *envp)
 				line.i = 0;
 			}
 		}
-		tputs(tgetstr("ei", NULL), 1, ft_iputchar);
 	}
 	return (0);
 }
