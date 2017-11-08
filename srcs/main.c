@@ -33,25 +33,12 @@ int		read_loop(t_list *envp)
 		key = get_key(&line);
 		if (key && line_addchar(envp, &line, key))
 		{
-<<<<<<< HEAD
-			if (line_addchar(envp, &line, key))
-			{
-				line.str[line.i - 1] = '\0';
-				launch_cmd(envp, line.str);
-				printf("[%d]\n",getpid());
-				ft_putstr(PROMPT);
-				ft_bzero(line.str, sizeof(char) * line.len);
-				line.str_len = 0;
-				line.i = 0;
-			}
-=======
 			line.str[line.i - 1] = '\0';
 			launch_cmd(envp, line.str);
 			ft_putstr(PROMPT);
 			ft_bzero(line.str, sizeof(char) * line.len);
 			line.str_len = 0;
 			line.i = 0;
->>>>>>> 37d35735057fb0cf680656de3ca6dbbcceaff7d8
 		}
 	}
 	return (0);
