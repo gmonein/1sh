@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/07 14:30:35 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 14:45:53 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,7 @@
 # include <stdlib.h>
 
 #define PROMPT				"$>"
-#define COTE_PROMPT			"dquote>"
-#define BACKSLASH_PROMPT	">"
+#define COTE_PROMPT			">"
 #define LINE_BUF	12
 
 # define BACK_WHITE			"\033[47m"
