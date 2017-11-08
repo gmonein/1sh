@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/08 17:05:20 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 17:44:21 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 17:52:11 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,8 @@ static void			insert_to_line(t_strbuf *line, char c)
 
 static void			insert_line_to_term(t_strbuf *line)
 {
-	move_to_lower_line(line);
+//	move_to_lower_line(line);
+	tputs("\033[1B", 1, ft_iputchar);
 	tputs(tgetstr("cr", NULL), 1, ft_iputchar);
 	tputs(tgetstr("al", NULL), 1, ft_iputchar);
 }
