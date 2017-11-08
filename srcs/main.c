@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 18:12:48 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 18:20:21 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,19 +27,20 @@ int		read_loop(t_list *envp)
 	ft_bzero(line.str, sizeof(char) * line.len);
 	while (42)
 	{
-		signal(SIGINT, SIG_IGN);
-		if (signal(SIGINT, handle_signal2) == SIG_ERR)
-				return (0);
+//		signal(SIGINT, SIG_IGN);
+//		if (signal(SIGINT, handle_signal2) == SIG_ERR)
+//				return (0);
 		key = get_key(&line);
-		if (key && line_addchar(envp, &line, key))
-		{
-			line.str[line.i - 1] = '\0';
-			launch_cmd(envp, line.str);
-			ft_putstr(PROMPT);
-			ft_bzero(line.str, sizeof(char) * line.len);
-			line.str_len = 0;
-			line.i = 0;
-		}
+		if (key)
+			if (line_addchar(envp, &line, key))
+			{
+				line.str[line.i - 1] = '\0';
+				launch_cmd(envp, line.str);
+				ft_putstr(PROMPT);
+				ft_bzero(line.str, sizeof(char) * line.len);
+				line.str_len = 0;
+				line.i = 0;
+			}
 	}
 	return (0);
 }

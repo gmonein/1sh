@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/11/08 17:05:20 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 18:06:35 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 18:20:47 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ int					line_addchar(t_list *envp, t_strbuf *line, char c)
 	{
 		if (back_slash || in_cote)
 			tputs(tgetstr("ce", NULL), 1, ft_iputchar);
-		insert_line_to_term(line);
+		ft_putchar('\n');
+		//insert_line_to_term(line);
 		if (!in_cote && !back_slash)
 		{
 			tputs(tgetstr("ei", NULL), 1, ft_iputchar);
