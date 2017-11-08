@@ -26,6 +26,8 @@ SOURCES = auto_completion.c \
 			termcaps.c \
 			tools.c \
 			unsetenv.c \
+			move_cursor.c \
+			insert_char.c
 
 DIR_O = objs
 

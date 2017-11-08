@@ -114,7 +114,7 @@ void	ft_rstrcpy(char *dest, char *src)
 	}
 }
 
-void	ft_putstrto(char *str, char c)
+size_t		ft_putstrto(char *str, char c)
 {
 	size_t		i;
 
@@ -124,6 +124,7 @@ void	ft_putstrto(char *str, char c)
 		ft_putchar(str[i]);
 		i++;
 	}
+	return (i);
 }
 
 size_t	ft_strlento(char *str, char c)

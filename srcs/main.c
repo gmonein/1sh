@@ -6,12 +6,11 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/31 16:06:47 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 15:22:54 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 18:12:48 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "minishell.h"
-# include <stdio.h>
+#include "minishell.h"
 
 void            handle_signal2(int sinl)
 {
@@ -22,25 +21,19 @@ void            handle_signal2(int sinl)
 int		read_loop(t_list *envp)
 {
 	t_strbuf	line;
-	char		in_cote;
-	size_t		off_line;
 	char		key;
 
-	line.str = (char *)malloc(sizeof(char) * LINE_BUF);
-	line.i = 0;
-	line.str_len = 0;
-	line.len = LINE_BUF;
-	off_line = 0;
+	line = (t_strbuf){(char *)malloc(sizeof(char) * LINE_BUF), LINE_BUF, 0, 0};
 	ft_bzero(line.str, sizeof(char) * line.len);
-	in_cote = 0;
 	while (42)
 	{
 		signal(SIGINT, SIG_IGN);
 		if (signal(SIGINT, handle_signal2) == SIG_ERR)
 				return (0);
 		key = get_key(&line);
-		if (key)
+		if (key && line_addchar(envp, &line, key))
 		{
+<<<<<<< HEAD
 			if (line_addchar(envp, &line, key))
 			{
 				line.str[line.i - 1] = '\0';
@@ -51,6 +44,14 @@ int		read_loop(t_list *envp)
 				line.str_len = 0;
 				line.i = 0;
 			}
+=======
+			line.str[line.i - 1] = '\0';
+			launch_cmd(envp, line.str);
+			ft_putstr(PROMPT);
+			ft_bzero(line.str, sizeof(char) * line.len);
+			line.str_len = 0;
+			line.i = 0;
+>>>>>>> 37d35735057fb0cf680656de3ca6dbbcceaff7d8
 		}
 	}
 	return (0);
@@ -69,8 +70,6 @@ int		main(int argc, char **argv, char **envp)
 	shell_name = get_env_node("TERM", env);
 	if (!shell_name)
 		return (EXIT_FAILURE);
-//	ft_strdel(&shell_name->info);
-//	shell_name->info = ft_strdup("minishell");
 	if (tcgetattr(0, &term) == -1)
 		return (EXIT_FAILURE);
 	term.c_lflag &= ~(ICANON);
@@ -80,6 +79,6 @@ int		main(int argc, char **argv, char **envp)
 	if (tcsetattr(0, TCSADRAIN, &term) == -1)
 		return (EXIT_FAILURE);
 	tgetent(0, shell_name->info);
-	write (1, PROMPT, 2);
+	ft_putstr(PROMPT);
 	read_loop(env);
 }
