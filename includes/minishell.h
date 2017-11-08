@@ -6,7 +6,7 @@
 /*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 14:45:53 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/08 16:52:43 by gmonein          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ int		ft_iputchar(int c);
 char	*ft_getchar(int *len);
 char	is_printable(char c);
 void	ft_rstrcpy(char *dest, char *src);
-void	ft_putstrto(char *str, char c);
+size_t	ft_putstrto(char *str, char c);
 size_t	ft_strlento(char *str, char c);
 void	launch_cmd(t_list *envp, char *line);
 void	get_delete_character(t_strbuf *line, char *input);
