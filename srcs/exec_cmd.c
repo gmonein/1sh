@@ -6,13 +6,10 @@ static int     run_cmd(char *path, char **args, char **newenv)
         int             cmd_status;
 
         cmd_status = 0;
-        //signal(SIGINT, handle_signal);
+        signal(SIGINT, handle_signal);
 		pid = fork();
 		if (pid == 0)
-		{
-			printf("%s\n", path);
             execve(path, args, newenv);
-		}
 		if (pid > 0)
             wait(&cmd_status);
         ft_memdel((void **)&path);

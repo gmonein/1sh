@@ -104,7 +104,14 @@ void	cd(t_list *envp, char **args)
 		pwd->info = ft_strdup(res);
 	}
 	else if (args[0] && !args[1])
-		new_line = ft_multijoin((char *[4]){pwd->info, "/", args[0], NULL});
+	{	
+		if(!ft_strcmp(args[0],"/"))
+			new_line = ft_strdup(args[0]);
+		else if (!ft_strcmp(args[0], "-"))
+			new_line = ft_strdup(get_env_node("OLDPWD",envp)->info);
+		else
+			new_line = ft_multijoin((char *[4]){pwd->info, "/", args[0], NULL});
+	}
 	else if (args[0] && args[1] && !args[2])
 		new_line = remplace_first_occurence(pwd->info, args[0], args[1]);
 	else

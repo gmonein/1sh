@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gmonein <marvin@42.fr>                     +#+  +:+       +#+        */
+/*   By: jamerlin <jamerlin@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/27 07:44:16 by gmonein           #+#    #+#             */
-/*   Updated: 2017/11/08 17:13:00 by gmonein          ###   ########.fr       */
+/*   Updated: 2017/11/09 11:59:49 by jamerlin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,4 +107,4 @@ void	get_arrow(t_strbuf *line, char *input);
 char	get_key(t_strbuf *line);
 int		line_addchar(t_list *envp, t_strbuf *line, char c);
 size_t	get_prompt_len(t_strbuf *line);
-
+void	handle_signal(int signl);
