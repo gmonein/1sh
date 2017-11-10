@@ -24,11 +24,11 @@ char	*ft_strjoinwithchar(char **to_join, char c)
 	return (res);
 }
 
-char	*search_and_remplace(char *str, char *remove, char *new)
+char	*sar_alloc(char *str, char *remove, char *new)
 {
-	char		*res;
-	int			i;
-	int			j;
+	int		i;
+	int		j;
+	char	*res;
 
 	j = 0;
 	i = -1;
@@ -37,8 +37,18 @@ char	*search_and_remplace(char *str, char *remove, char *new)
 			j++;
 	res = (char *)malloc(sizeof(char) *
 			(i - j * ft_strlen(remove) + j * ft_strlen(new) + 1));
+	return (res);
+}
+
+char	*search_and_remplace(char *str, char *remove, char *new)
+{
+	char		*res;
+	int			i;
+	int			j;
+
 	i = 0;
 	j = 0;
+	res = sar_alloc(str, remove, new);
 	while (str[i])
 	{
 		if (!ft_strncmp(&str[i], remove, ft_strlen(remove)))
