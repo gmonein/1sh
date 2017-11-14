@@ -39,6 +39,8 @@ int		nb_node(t_list *envp)
 	int i;
 
 	i = 0;
+	if (!envp)
+		return (0);
 	while (envp && envp->next)
 	{
 		envp = envp->next;
@@ -84,7 +86,7 @@ static int      check_if_is_binary(char **line, t_list *envp)
 		envi = list_to_2dtab(envp);
         if (lstat(line[0], &f) != -1)
                 return (is_executable((bin_path = ft_strdup(line[0])), f, line, envi));
-        path = ft_strsplit(get_env_node("PATH", envp)->info , ':');
+		path = ft_strsplit(get_env_node("PATH", envp)->info , ':');
 		while (path && path[++i] && (bin_path = ft_multijoin((char *[4]){path[i],"/", line[0], NULL})))
         {
             if (lstat(bin_path, &f) != -1)
@@ -123,7 +125,6 @@ void	launch_cmd(t_list *envp, char *line)
 			sh_unsetenv(envp, &splited[1]);
 		else if (!ft_strcmp(splited[0], "setenv"))
 			sh_setenv(envp, &splited[1]);
-		//else if (!ft_strncmp(splited[0], "./", 2))
 		else if (!check_if_is_binary(splited, envp))
 			ft_multiputstr_fd((char *[4])
 					{"1sh: command not found: ", splited[0], "\n", NULL}, 2);
